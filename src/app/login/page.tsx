@@ -8,22 +8,20 @@ import { toast } from 'sonner'
 import Link from 'next/link'
 
 export default function LoginPage() {
-  const [phone, setPhone] = useState('')
+  const [email, setEmail] = useState('')
   const [otp, setOtp] = useState('')
-  const [step, setStep] = useState<'phone' | 'otp'>('phone')
+  const [step, setStep] = useState<'email' | 'otp'>('email')
   const [loading, setLoading] = useState(false)
   const router = useRouter()
   const supabase = createClient()
 
   const sendOtp = async () => {
-    if (!phone || phone.length < 10) return toast.error('Enter a valid phone number')
+    if (!email || !email.includes('@')) return toast.error('Enter a valid email address')
     setLoading(true)
-    const { error } = await supabase.auth.signInWithOtp({
-      phone: phone.startsWith('+') ? phone : `+91${phone}`,
-    })
+    const { error } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase() })
     setLoading(false)
     if (error) return toast.error(error.message)
-    toast.success('OTP sent!')
+    toast.success('Check your email for the OTP')
     setStep('otp')
   }
 
@@ -31,9 +29,9 @@ export default function LoginPage() {
     if (!otp || otp.length !== 6) return toast.error('Enter the 6-digit OTP')
     setLoading(true)
     const { data, error } = await supabase.auth.verifyOtp({
-      phone: phone.startsWith('+') ? phone : `+91${phone}`,
+      email: email.trim().toLowerCase(),
       token: otp,
-      type: 'sms',
+      type: 'email',
     })
     setLoading(false)
     if (error) return toast.error(error.message)
@@ -56,25 +54,22 @@ export default function LoginPage() {
         <div className="text-center">
           <Link href="/" className="text-3xl font-bold text-zinc-900">latent</Link>
           <p className="mt-2 text-zinc-400 text-sm">
-            {step === 'phone' ? 'Enter your phone number to continue' : `Enter the OTP sent to +91${phone}`}
+            {step === 'email' ? 'Enter your email to continue' : `Check ${email} for your OTP`}
           </p>
         </div>
 
         <div className="space-y-3">
-          {step === 'phone' ? (
+          {step === 'email' ? (
             <>
-              <div className="flex gap-2">
-                <span className="flex items-center px-3 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-500 text-sm font-medium">+91</span>
-                <Input
-                  type="tel"
-                  placeholder="98765 43210"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
-                  maxLength={10}
-                  className="bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-300 h-12 rounded-xl"
-                  onKeyDown={(e) => e.key === 'Enter' && sendOtp()}
-                />
-              </div>
+              <Input
+                type="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-300 h-12 rounded-xl"
+                onKeyDown={(e) => e.key === 'Enter' && sendOtp()}
+                autoFocus
+              />
               <button
                 onClick={sendOtp}
                 disabled={loading}
@@ -93,6 +88,7 @@ export default function LoginPage() {
                 maxLength={6}
                 className="bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-300 h-14 text-center text-2xl tracking-widest rounded-xl"
                 onKeyDown={(e) => e.key === 'Enter' && verifyOtp()}
+                autoFocus
               />
               <button
                 onClick={verifyOtp}
@@ -102,10 +98,10 @@ export default function LoginPage() {
                 {loading ? 'Verifying...' : 'Verify OTP'}
               </button>
               <button
-                onClick={() => setStep('phone')}
+                onClick={() => setStep('email')}
                 className="w-full text-zinc-400 text-sm hover:text-zinc-600 transition-colors"
               >
-                ← Change number
+                ← Change email
               </button>
             </>
           )}
