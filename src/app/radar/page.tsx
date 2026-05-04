@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import Link from 'next/link'
 
 type RadarState = 'idle' | 'scanning' | 'found' | 'matching' | 'no-match'
 
@@ -22,10 +23,11 @@ export default function RadarPage() {
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('full_name, is_onboarded')
+        .select('full_name, is_onboarded, is_invite_verified')
         .eq('id', user.id)
         .single()
 
+      if (!profile?.is_invite_verified) return router.push('/onboarding/invite')
       if (!profile?.is_onboarded) return router.push('/onboarding/details')
       setUserName(profile.full_name?.split(' ')[0] || '')
     }
@@ -95,6 +97,9 @@ export default function RadarPage() {
         <span className="text-white font-bold text-xl">latent</span>
         <div className="flex items-center gap-3">
           {userName && <span className="text-zinc-500 text-sm">{userName}</span>}
+          <Link href="/invites" className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors">
+            Invites
+          </Link>
           <button
             onClick={async () => {
               await supabase.auth.signOut()

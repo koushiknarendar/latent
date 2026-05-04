@@ -19,7 +19,6 @@ export default function PersonalityPage() {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return router.push('/login')
 
-    // Save responses first
     const { error: responseError } = await supabase
       .from('personality_responses')
       .upsert({
@@ -34,7 +33,6 @@ export default function PersonalityPage() {
       return toast.error('Failed to save. Try again.')
     }
 
-    // Extract personality vector via API route
     const res = await fetch('/api/personality', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -49,7 +47,6 @@ export default function PersonalityPage() {
         .eq('user_id', user.id)
     }
 
-    // Mark onboarding complete
     await supabase
       .from('profiles')
       .update({ is_onboarded: true })
@@ -63,14 +60,14 @@ export default function PersonalityPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">Tell us a bit more</h1>
-        <p className="text-zinc-500 text-sm mt-1">AI uses these to find your best match. Never shown to others.</p>
+        <h1 className="text-2xl font-bold text-zinc-900">Tell us a bit more</h1>
+        <p className="text-zinc-400 text-sm mt-1">AI uses these to find your best match. Never shown to others.</p>
       </div>
 
-      <div className="space-y-6">
+      <div className="space-y-5">
         {PERSONALITY_QUESTIONS.map((question, i) => (
           <div key={i} className="space-y-2">
-            <label className="text-zinc-300 text-sm font-medium leading-relaxed block">
+            <label className="text-zinc-700 text-sm font-medium leading-relaxed block">
               {i + 1}. {question}
             </label>
             <textarea
@@ -78,23 +75,23 @@ export default function PersonalityPage() {
               onChange={(e) => setAnswers(prev => prev.map((a, idx) => idx === i ? e.target.value : a))}
               rows={3}
               placeholder="Write freely..."
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-xl p-3 text-white placeholder:text-zinc-600 text-sm resize-none focus:outline-none focus:border-zinc-600 transition-colors"
+              className="w-full bg-zinc-50 border border-zinc-200 rounded-xl p-3 text-zinc-900 placeholder:text-zinc-300 text-sm resize-none focus:outline-none focus:border-zinc-400 transition-colors"
             />
           </div>
         ))}
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <button
           onClick={handleSubmit}
           disabled={loading || answers.some(a => a.trim().length < 10)}
-          className="w-full h-12 bg-white text-black rounded-full font-semibold hover:bg-zinc-200 disabled:opacity-50 transition-colors"
+          className="w-full h-12 bg-zinc-900 text-white rounded-full font-semibold hover:bg-zinc-800 disabled:opacity-40 transition-colors text-sm"
         >
           {loading ? 'Analysing...' : 'Find my people →'}
         </button>
-        <div className="flex gap-1 justify-center pt-1">
+        <div className="flex gap-1.5 justify-center">
           {[0, 1, 2, 3].map(i => (
-            <div key={i} className={`h-1 rounded-full transition-all ${i === 3 ? 'w-6 bg-white' : 'w-2 bg-zinc-700'}`} />
+            <div key={i} className={`h-1 rounded-full transition-all ${i === 3 ? 'w-6 bg-zinc-900' : 'w-2 bg-zinc-200'}`} />
           ))}
         </div>
       </div>

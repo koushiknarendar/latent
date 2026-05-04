@@ -40,39 +40,46 @@ export default function LoginPage() {
     if (data.user) {
       const { data: profile } = await supabase
         .from('profiles')
-        .select('is_onboarded')
+        .select('is_onboarded, is_invite_verified')
         .eq('id', data.user.id)
         .single()
-      router.push(profile?.is_onboarded ? '/radar' : '/onboarding/details')
+
+      if (!profile?.is_invite_verified) return router.push('/onboarding/invite')
+      if (!profile?.is_onboarded) return router.push('/onboarding/details')
+      router.push('/radar')
     }
   }
 
   return (
-    <main className="flex flex-col items-center justify-center min-h-screen px-6 bg-black">
+    <main className="flex flex-col items-center justify-center min-h-screen px-6 bg-white">
       <div className="w-full max-w-xs space-y-8">
         <div className="text-center">
-          <Link href="/" className="text-3xl font-bold text-white">latent</Link>
-          <p className="mt-2 text-zinc-500 text-sm">
-            {step === 'phone' ? 'Enter your phone number to continue' : `Enter the OTP sent to ${phone}`}
+          <Link href="/" className="text-3xl font-bold text-zinc-900">latent</Link>
+          <p className="mt-2 text-zinc-400 text-sm">
+            {step === 'phone' ? 'Enter your phone number to continue' : `Enter the OTP sent to +91${phone}`}
           </p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-3">
           {step === 'phone' ? (
             <>
               <div className="flex gap-2">
-                <span className="flex items-center px-3 bg-zinc-900 border border-zinc-800 rounded-lg text-zinc-400 text-sm">+91</span>
+                <span className="flex items-center px-3 bg-zinc-50 border border-zinc-200 rounded-xl text-zinc-500 text-sm font-medium">+91</span>
                 <Input
                   type="tel"
                   placeholder="98765 43210"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value.replace(/\D/g, ''))}
                   maxLength={10}
-                  className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 h-12"
+                  className="bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-300 h-12 rounded-xl"
                   onKeyDown={(e) => e.key === 'Enter' && sendOtp()}
                 />
               </div>
-              <button onClick={sendOtp} disabled={loading} className="w-full bg-white text-black hover:bg-zinc-200 h-12 rounded-full font-semibold disabled:opacity-50 transition-colors">
+              <button
+                onClick={sendOtp}
+                disabled={loading}
+                className="w-full bg-zinc-900 text-white hover:bg-zinc-800 h-12 rounded-full font-semibold disabled:opacity-40 transition-colors text-sm"
+              >
                 {loading ? 'Sending...' : 'Send OTP'}
               </button>
             </>
@@ -84,22 +91,29 @@ export default function LoginPage() {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 maxLength={6}
-                className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 h-12 text-center text-xl tracking-widest"
+                className="bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-300 h-14 text-center text-2xl tracking-widest rounded-xl"
                 onKeyDown={(e) => e.key === 'Enter' && verifyOtp()}
               />
-              <button onClick={verifyOtp} disabled={loading} className="w-full bg-white text-black hover:bg-zinc-200 h-12 rounded-full font-semibold disabled:opacity-50 transition-colors">
+              <button
+                onClick={verifyOtp}
+                disabled={loading}
+                className="w-full bg-zinc-900 text-white hover:bg-zinc-800 h-12 rounded-full font-semibold disabled:opacity-40 transition-colors text-sm"
+              >
                 {loading ? 'Verifying...' : 'Verify OTP'}
               </button>
-              <button onClick={() => setStep('phone')} className="w-full text-zinc-500 text-sm hover:text-zinc-300 transition-colors">
+              <button
+                onClick={() => setStep('phone')}
+                className="w-full text-zinc-400 text-sm hover:text-zinc-600 transition-colors"
+              >
                 ← Change number
               </button>
             </>
           )}
         </div>
 
-        <p className="text-center text-xs text-zinc-700">
+        <p className="text-center text-xs text-zinc-300">
           By continuing, you agree to our Terms of Service.<br />
-          Free for women. Men join by invite + ₹149/month.
+          latent is invite-only.
         </p>
       </div>
     </main>

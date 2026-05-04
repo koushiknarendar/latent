@@ -47,23 +47,23 @@ export default function DetailsPage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-bold text-white">Your details</h1>
-        <p className="text-zinc-500 text-sm mt-1">Only revealed when you both agree. Hidden until then.</p>
+        <h1 className="text-2xl font-bold text-zinc-900">Your details</h1>
+        <p className="text-zinc-400 text-sm mt-1">Only revealed when you both agree. Hidden until then.</p>
       </div>
 
       <div className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-zinc-400 text-xs uppercase tracking-wider">Full name</label>
+          <label className="text-zinc-400 text-xs uppercase tracking-wider font-medium">Full name</label>
           <Input
             placeholder="Priya Sharma"
             value={form.full_name}
             onChange={(e) => setForm(f => ({ ...f, full_name: e.target.value }))}
-            className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 h-12"
+            className="bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-300 h-12 rounded-xl"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-zinc-400 text-xs uppercase tracking-wider">Age</label>
+          <label className="text-zinc-400 text-xs uppercase tracking-wider font-medium">Age</label>
           <Input
             type="number"
             placeholder="26"
@@ -71,22 +71,24 @@ export default function DetailsPage() {
             max={99}
             value={form.age}
             onChange={(e) => setForm(f => ({ ...f, age: e.target.value }))}
-            className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 h-12"
+            className="bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-300 h-12 rounded-xl"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-zinc-400 text-xs uppercase tracking-wider">Occupation <span className="text-zinc-600">(optional)</span></label>
+          <label className="text-zinc-400 text-xs uppercase tracking-wider font-medium">
+            Occupation <span className="text-zinc-300 normal-case">(optional)</span>
+          </label>
           <Input
             placeholder="Product Designer"
             value={form.occupation}
             onChange={(e) => setForm(f => ({ ...f, occupation: e.target.value }))}
-            className="bg-zinc-900 border-zinc-800 text-white placeholder:text-zinc-600 h-12"
+            className="bg-zinc-50 border-zinc-200 text-zinc-900 placeholder:text-zinc-300 h-12 rounded-xl"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-zinc-400 text-xs uppercase tracking-wider">I am a</label>
+          <label className="text-zinc-400 text-xs uppercase tracking-wider font-medium">I am a</label>
           <div className="grid grid-cols-2 gap-2">
             {GENDER_OPTIONS.map(({ value, label }) => (
               <button
@@ -94,8 +96,8 @@ export default function DetailsPage() {
                 onClick={() => setForm(f => ({ ...f, gender: value }))}
                 className={`h-12 rounded-xl border text-sm font-medium transition-all ${
                   form.gender === value
-                    ? 'border-white bg-white text-black'
-                    : 'border-zinc-800 bg-zinc-900 text-zinc-400 hover:border-zinc-600'
+                    ? 'border-zinc-900 bg-zinc-900 text-white'
+                    : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400'
                 }`}
               >
                 {label}
@@ -105,17 +107,17 @@ export default function DetailsPage() {
         </div>
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <button
           onClick={handleSubmit}
           disabled={loading}
-          className="w-full h-12 bg-white text-black rounded-full font-semibold hover:bg-zinc-200 disabled:opacity-50 transition-colors"
+          className="w-full h-12 bg-zinc-900 text-white rounded-full font-semibold hover:bg-zinc-800 disabled:opacity-40 transition-colors text-sm"
         >
           {loading ? 'Saving...' : 'Continue →'}
         </button>
-        <div className="flex gap-1 justify-center pt-1">
+        <div className="flex gap-1.5 justify-center">
           {[0, 1, 2, 3].map(i => (
-            <div key={i} className={`h-1 rounded-full transition-all ${i === 0 ? 'w-6 bg-white' : 'w-2 bg-zinc-700'}`} />
+            <div key={i} className={`h-1 rounded-full transition-all ${i === 0 ? 'w-6 bg-zinc-900' : 'w-2 bg-zinc-200'}`} />
           ))}
         </div>
       </div>

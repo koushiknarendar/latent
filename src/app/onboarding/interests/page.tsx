@@ -8,10 +8,10 @@ import { INTEREST_CATEGORIES, PassionLevel } from '@/types'
 
 type SelectedInterest = { category: string; subcategory: string; passion_level: PassionLevel }
 
-const PASSION_LEVELS: { value: PassionLevel; label: string; color: string }[] = [
-  { value: 'interested', label: 'Interested', color: 'bg-zinc-700 text-zinc-300' },
-  { value: 'passionate', label: 'Passionate', color: 'bg-zinc-600 text-white' },
-  { value: 'obsessed', label: 'Obsessed', color: 'bg-white text-black' },
+const PASSION_LEVELS: { value: PassionLevel; label: string }[] = [
+  { value: 'interested', label: 'Interested' },
+  { value: 'passionate', label: 'Passionate' },
+  { value: 'obsessed', label: 'Obsessed' },
 ]
 
 export default function InterestsPage() {
@@ -62,8 +62,8 @@ export default function InterestsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-white">What are you into?</h1>
-        <p className="text-zinc-500 text-sm mt-1">Pick 3–10. Tell us how deep it goes.</p>
+        <h1 className="text-2xl font-bold text-zinc-900">What are you into?</h1>
+        <p className="text-zinc-400 text-sm mt-1">Pick 3–10. Tell us how deep it goes.</p>
       </div>
 
       {/* Category tabs */}
@@ -73,7 +73,9 @@ export default function InterestsPage() {
             key={cat}
             onClick={() => setActiveCategory(cat)}
             className={`flex-shrink-0 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-              activeCategory === cat ? 'bg-white text-black' : 'bg-zinc-900 text-zinc-400 border border-zinc-800'
+              activeCategory === cat
+                ? 'bg-zinc-900 text-white'
+                : 'bg-white text-zinc-500 border border-zinc-200 hover:border-zinc-400'
             }`}
           >
             {cat}
@@ -90,7 +92,9 @@ export default function InterestsPage() {
               key={sub}
               onClick={() => toggleInterest(activeCategory, sub)}
               className={`px-3 py-1.5 rounded-full text-sm border transition-all ${
-                active ? 'border-white bg-zinc-900 text-white' : 'border-zinc-800 bg-zinc-950 text-zinc-500 hover:border-zinc-600'
+                active
+                  ? 'border-zinc-900 bg-zinc-900 text-white'
+                  : 'border-zinc-200 bg-white text-zinc-600 hover:border-zinc-400'
               }`}
             >
               {sub}
@@ -102,17 +106,19 @@ export default function InterestsPage() {
       {/* Selected interests with passion levels */}
       {selected.length > 0 && (
         <div className="space-y-2">
-          <p className="text-zinc-600 text-xs uppercase tracking-wider">Your picks ({selected.length}/10)</p>
+          <p className="text-zinc-400 text-xs uppercase tracking-wider font-medium">Your picks ({selected.length}/10)</p>
           {selected.map(({ category, subcategory, passion_level }) => (
-            <div key={`${category}-${subcategory}`} className="flex items-center gap-2 bg-zinc-900 rounded-xl p-3">
-              <span className="text-white text-sm flex-1">{subcategory}</span>
+            <div key={`${category}-${subcategory}`} className="flex items-center gap-2 bg-zinc-50 border border-zinc-100 rounded-xl p-3">
+              <span className="text-zinc-800 text-sm flex-1">{subcategory}</span>
               <div className="flex gap-1">
-                {PASSION_LEVELS.map(({ value, label, color }) => (
+                {PASSION_LEVELS.map(({ value, label }) => (
                   <button
                     key={value}
                     onClick={() => setPassion(category, subcategory, value)}
                     className={`px-2 py-0.5 rounded-full text-xs font-medium transition-all ${
-                      passion_level === value ? color : 'bg-zinc-800 text-zinc-600'
+                      passion_level === value
+                        ? 'bg-zinc-900 text-white'
+                        : 'bg-zinc-100 text-zinc-400 hover:bg-zinc-200'
                     }`}
                   >
                     {label}
@@ -124,17 +130,17 @@ export default function InterestsPage() {
         </div>
       )}
 
-      <div className="space-y-2">
+      <div className="space-y-3">
         <button
           onClick={handleSubmit}
           disabled={loading || selected.length < 3}
-          className="w-full h-12 bg-white text-black rounded-full font-semibold hover:bg-zinc-200 disabled:opacity-50 transition-colors"
+          className="w-full h-12 bg-zinc-900 text-white rounded-full font-semibold hover:bg-zinc-800 disabled:opacity-40 transition-colors text-sm"
         >
           {loading ? 'Saving...' : `Continue → (${selected.length} selected)`}
         </button>
-        <div className="flex gap-1 justify-center pt-1">
+        <div className="flex gap-1.5 justify-center">
           {[0, 1, 2, 3].map(i => (
-            <div key={i} className={`h-1 rounded-full transition-all ${i === 2 ? 'w-6 bg-white' : 'w-2 bg-zinc-700'}`} />
+            <div key={i} className={`h-1 rounded-full transition-all ${i === 2 ? 'w-6 bg-zinc-900' : 'w-2 bg-zinc-200'}`} />
           ))}
         </div>
       </div>
