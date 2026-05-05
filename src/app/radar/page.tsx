@@ -97,6 +97,9 @@ export default function RadarPage() {
         <span className="text-white font-bold text-xl">latent</span>
         <div className="flex items-center gap-3">
           {userName && <span className="text-zinc-500 text-sm">{userName}</span>}
+          <Link href="/connections" className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors">
+            Connections
+          </Link>
           <Link href="/invites" className="text-zinc-500 text-xs hover:text-zinc-300 transition-colors">
             Invites
           </Link>
