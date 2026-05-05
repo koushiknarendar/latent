@@ -98,7 +98,7 @@ export default function RoomPage() {
           const prev = roomRef.current
           setRoom(updated)
           roomRef.current = updated
-          if (updated.status === 'closed') router.push('/radar')
+          if (updated.status === 'closed') router.push(`/room/${id}/rate`)
           if (updated.reveal_requested_by_1 && updated.reveal_requested_by_2) setRevealState('revealed')
           if (updated.timer_extended && !prev?.timer_extended) {
             toast.success('They extended the conversation')
@@ -169,7 +169,7 @@ export default function RoomPage() {
 
   const closeRoom = async () => {
     await supabase.from('rooms').update({ status: 'closed', closed_at: new Date().toISOString() }).eq('id', id)
-    router.push('/radar')
+    router.push(`/room/${id}/rate`)
   }
 
   if (!room) return (
