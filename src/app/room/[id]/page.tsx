@@ -16,18 +16,22 @@ export default function RoomPage() {
   const [userId, setUserId] = useState<string | null>(null)
   const [revealState, setRevealState] = useState<RevealState>('none')
   const [timeLeft, setTimeLeft] = useState('')
-  const [showExtendPrompt, setShowExtendPrompt] = useState(false)
+  const [isExpiringSoon, setIsExpiringSoon] = useState(false)
   const [otherUserName, setOtherUserName] = useState('')
   const [otherUserOccupation, setOtherUserOccupation] = useState('')
   const bottomRef = useRef<HTMLDivElement>(null)
+  const roomRef = useRef<Room | null>(null)
   const router = useRouter()
   const supabase = createClient()
 
   const formatTime = (ms: number) => {
     const h = Math.floor(ms / 3600000)
     const m = Math.floor((ms % 3600000) / 60000)
+    const s = Math.floor((ms % 60000) / 1000)
     if (h > 0) return `${h}h ${m}m`
-    return `${m}m left`
+    if (m >= 5) return `${m}m left`
+    if (m > 0) return `${m}:${s.toString().padStart(2, '0')}`
+    return `${s}s`
   }
 
   const loadRoom = useCallback(async () => {
@@ -46,6 +50,7 @@ export default function RoomPage() {
     if (roomData.status === 'closed') return router.push('/radar')
 
     setRoom(roomData)
+    roomRef.current = roomData
 
     const isUser1 = roomData.user_1_id === user.id
     const myRequested = isUser1 ? roomData.reveal_requested_by_1 : roomData.reveal_requested_by_2
@@ -80,7 +85,7 @@ export default function RoomPage() {
     loadRoom()
   }, [loadRoom])
 
-  // Realtime messages
+  // Realtime
   useEffect(() => {
     const channel = supabase
       .channel(`room-${id}`)
@@ -90,9 +95,14 @@ export default function RoomPage() {
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'rooms', filter: `id=eq.${id}` },
         (payload) => {
           const updated = payload.new as Room
+          const prev = roomRef.current
           setRoom(updated)
+          roomRef.current = updated
           if (updated.status === 'closed') router.push('/radar')
           if (updated.reveal_requested_by_1 && updated.reveal_requested_by_2) setRevealState('revealed')
+          if (updated.timer_extended && !prev?.timer_extended) {
+            toast.success('They extended the conversation')
+          }
         }
       )
       .subscribe()
@@ -100,23 +110,24 @@ export default function RoomPage() {
     return () => { supabase.removeChannel(channel) }
   }, [id, supabase, router])
 
-  // Timer
+  // Timer — ticks every second
   useEffect(() => {
     if (!room) return
-    const interval = setInterval(() => {
+    const tick = () => {
       const expires = new Date(room.timer_expires_at).getTime()
-      const now = Date.now()
-      const diff = expires - now
+      const diff = expires - Date.now()
       if (diff <= 0) {
         setTimeLeft('Expired')
-        clearInterval(interval)
+        setIsExpiringSoon(false)
         return
       }
       setTimeLeft(formatTime(diff))
-      if (diff <= 2 * 60 * 60 * 1000 && !showExtendPrompt) setShowExtendPrompt(true)
-    }, 30000)
+      setIsExpiringSoon(diff <= 10 * 60 * 1000)
+    }
+    tick()
+    const interval = setInterval(tick, 1000)
     return () => clearInterval(interval)
-  }, [room, showExtendPrompt])
+  }, [room])
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -126,7 +137,6 @@ export default function RoomPage() {
     if (!input.trim() || !userId) return
     const content = input.trim()
     setInput('')
-
     await supabase.from('messages').insert({ room_id: id, sender_id: userId, content })
   }
 
@@ -148,7 +158,6 @@ export default function RoomPage() {
       status: 'revealed',
     }).eq('id', id)
     setRevealState('revealed')
-
     const otherId = isUser1 ? room.user_2_id : room.user_1_id
     const { data: other } = await supabase.from('profiles').select('full_name, occupation').eq('id', otherId).single()
     if (other) {
@@ -161,15 +170,6 @@ export default function RoomPage() {
   const closeRoom = async () => {
     await supabase.from('rooms').update({ status: 'closed', closed_at: new Date().toISOString() }).eq('id', id)
     router.push('/radar')
-  }
-
-  const extendTimer = async () => {
-    if (!room) return
-    const newExpiry = new Date(room.timer_expires_at)
-    newExpiry.setHours(newExpiry.getHours() + 24)
-    await supabase.from('rooms').update({ timer_expires_at: newExpiry.toISOString(), timer_extended: true }).eq('id', id)
-    setShowExtendPrompt(false)
-    toast.success('24 more hours!')
   }
 
   if (!room) return (
@@ -191,19 +191,28 @@ export default function RoomPage() {
           )}
         </div>
         <div className="flex items-center gap-3">
-          {timeLeft && <span className="text-zinc-600 text-xs">{timeLeft}</span>}
+          {timeLeft && (
+            <span className={`text-xs font-mono transition-colors ${isExpiringSoon ? 'text-red-400' : 'text-zinc-600'}`}>
+              {timeLeft}
+            </span>
+          )}
+          {room.timer_extended && (
+            <span className="text-zinc-600 text-xs">⏱ Extended</span>
+          )}
           <button onClick={closeRoom} className="text-zinc-700 text-xs hover:text-red-400 transition-colors">Close</button>
         </div>
       </div>
 
-      {/* Extend prompt */}
-      {showExtendPrompt && (
+      {/* Extend session prompt */}
+      {isExpiringSoon && !room.timer_extended && (
         <div className="mx-4 mt-3 bg-zinc-900 border border-zinc-800 rounded-2xl p-4 flex items-center justify-between">
-          <p className="text-zinc-300 text-sm">Conversation closes in 2 hours. Continue?</p>
-          <div className="flex gap-2">
-            <button onClick={() => setShowExtendPrompt(false)} className="text-zinc-600 text-xs">No</button>
-            <button onClick={extendTimer} className="text-white text-xs font-medium">Yes +24h</button>
-          </div>
+          <p className="text-zinc-300 text-sm">Conversation ending soon</p>
+          <button
+            onClick={() => router.push(`/room/${id}/extend`)}
+            className="text-white text-xs font-semibold hover:text-zinc-300 transition-colors"
+          >
+            Extend session →
+          </button>
         </div>
       )}
 
@@ -226,7 +235,6 @@ export default function RoomPage() {
 
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
-        {/* Icebreaker */}
         {room.icebreaker && (
           <div className="flex justify-center my-2">
             <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3 max-w-xs text-center">

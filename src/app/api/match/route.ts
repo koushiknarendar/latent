@@ -169,6 +169,7 @@ export async function POST(req: NextRequest) {
       session_intent: myProfile.intent,
       venue_lat: lat,
       venue_lng: lng,
+      timer_expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
     })
     .select('id')
     .single()
